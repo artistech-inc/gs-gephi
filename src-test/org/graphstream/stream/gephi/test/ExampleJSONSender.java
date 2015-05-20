@@ -19,12 +19,9 @@
 package org.graphstream.stream.gephi.test;
 
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.stream.gephi.JSONSender;
-import org.graphstream.ui.graphicGraph.GraphicGraph;
-import org.graphstream.ui.graphicGraph.GraphicNode;
-import org.graphstream.ui.swingViewer.Viewer;
+import org.graphstream.ui.view.Viewer;
 
 /**
  * a example of using the JSONStream sender

@@ -18,43 +18,54 @@
  */
 package org.graphstream.stream.gephi;
 
-import java.io.*;
-import java.net.*;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownServiceException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.graphstream.stream.Sink;
+
 //import org.apache.commons.codec.binary.Base64;
 import org.graphstream.stream.gephi.JSONEventConstants.Fields;
 import org.graphstream.stream.gephi.JSONEventConstants.Types;
-import org.json.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * This class is responsible to send GraphStream event in JSON format to Gephi
  * server, so as to communicate from GraphStream to Gephi.
- * 
+ *
  * @author wumalbert
- * 
+ *
  */
 public class JSONSender implements Sink {
+
     /**
      * the host of the Gephi server
      */
-    private String host;
+    private final String host;
 
     /**
      * the port of the Gephi server
      */
-    private int port;
+    private final int port;
 
     /**
      * the workspace name of the Gephi server
      */
-    private String workspace;
+    private final String workspace;
 
     /**
      * End of Line
      */
     // private static String EOL = "\r\n";
-    private static String EOL = "\r";
+    private static String EOL = "\n";
 
     /**
      * program debug mode
@@ -63,63 +74,56 @@ public class JSONSender implements Sink {
 
     /**
      * A sink which can send event to an Gephi server in JSON format
-     * 
-     * @param host
-     *            , the host of the Gephi server
-     * @param port
-     *            , the port of the Gephi server
-     * @param workspace
-     *            , the workspace name of the Gephi server
+     *
+     * @param host , the host of the Gephi server
+     * @param port , the port of the Gephi server
+     * @param workspace , the workspace name of the Gephi server
      */
     public JSONSender(String host, int port, String workspace) {
-	this.host = host;
-	this.port = port;
-	this.workspace = workspace;
-	this.debug = false;
+        this.host = host;
+        this.port = port;
+        this.workspace = workspace;
+        this.debug = false;
     }
 
     /**
      * A sink which can send event to an Gephi server in JSON format
-     * 
-     * @param host
-     *            , the host of the Gephi server
-     * @param port
-     *            , the port of the Gephi server
-     * @param workspace
-     *            , the workspace name of the Gephi server
-     * @param debug
-     *            , the program mode
+     *
+     * @param host , the host of the Gephi server
+     * @param port , the port of the Gephi server
+     * @param workspace , the workspace name of the Gephi server
+     * @param debug , the program mode
      */
     public JSONSender(String host, int port, String workspace, boolean debug) {
-	this.host = host;
-	this.port = port;
-	this.workspace = workspace;
-	this.debug = debug;
+        this.host = host;
+        this.port = port;
+        this.workspace = workspace;
+        this.debug = debug;
     }
 
     /**
      * set debug mode
-     * 
+     *
      * @param debug
      */
     public void setDebug(boolean debug) {
-	this.debug = debug;
+        this.debug = debug;
     }
 
     /**
      * set debug message
-     * 
+     *
      * @param message
      * @param data
      */
     private void debug(String message, Object... data) {
-	// System.err.print( LIGHT_YELLOW );
-	// System.err.printf("[//%s:%d | ", host, port);
-	// System.err.print( RESET );
-	System.err.printf(message, data);
-	// System.err.print( LIGHT_YELLOW );
-	System.err.printf("]%n");
-	// System.err.println( RESET );
+        // System.err.print( LIGHT_YELLOW );
+        // System.err.printf("[//%s:%d | ", host, port);
+        // System.err.print( RESET );
+        System.err.printf(message, data);
+        // System.err.print( LIGHT_YELLOW );
+        System.err.printf("]%n");
+        // System.err.println( RESET );
     }
 
     /*
@@ -131,22 +135,23 @@ public class JSONSender implements Sink {
      */
     @Override
     public void edgeAttributeAdded(String sourceId, long timeId, String edgeId,
-	    String attribute, Object value) {
+            String attribute, Object value) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(
-		    Types.CE.value(),
-		    new JSONObject().put(edgeId,
-			    new JSONObject().put(attribute, value)));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(
+                    Types.CE.value(),
+                    new JSONObject().put(edgeId,
+                            new JSONObject().put(attribute, value)));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -160,22 +165,23 @@ public class JSONSender implements Sink {
      */
     @Override
     public void edgeAttributeChanged(String sourceId, long timeId,
-	    String edgeId, String attribute, Object oldValue, Object newValue) {
+            String edgeId, String attribute, Object oldValue, Object newValue) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(
-		    Types.CE.value(),
-		    new JSONObject().put(edgeId,
-			    new JSONObject().put(attribute, newValue)));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(
+                    Types.CE.value(),
+                    new JSONObject().put(edgeId,
+                            new JSONObject().put(attribute, newValue)));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -188,22 +194,23 @@ public class JSONSender implements Sink {
      */
     @Override
     public void edgeAttributeRemoved(String sourceId, long timeId,
-	    String edgeId, String attribute) {
+            String edgeId, String attribute) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(
-		    Types.CE.value(),
-		    new JSONObject().put(edgeId,
-			    new JSONObject().put(attribute, JSONObject.NULL)));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(
+                    Types.CE.value(),
+                    new JSONObject().put(edgeId,
+                            new JSONObject().put(attribute, JSONObject.NULL)));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -216,20 +223,21 @@ public class JSONSender implements Sink {
      */
     @Override
     public void graphAttributeAdded(String sourceId, long timeId,
-	    String attribute, Object value) {
+            String attribute, Object value) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.CG.value(),
-		    new JSONObject().put(attribute, value));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.CG.value(),
+                    new JSONObject().put(attribute, value));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -242,20 +250,21 @@ public class JSONSender implements Sink {
      */
     @Override
     public void graphAttributeChanged(String sourceId, long timeId,
-	    String attribute, Object oldValue, Object newValue) {
+            String attribute, Object oldValue, Object newValue) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.CG.value(),
-		    new JSONObject().put(attribute, newValue));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.CG.value(),
+                    new JSONObject().put(attribute, newValue));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -268,20 +277,21 @@ public class JSONSender implements Sink {
      */
     @Override
     public void graphAttributeRemoved(String sourceId, long timeId,
-	    String attribute) {
+            String attribute) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.CG.value(),
-		    new JSONObject().put(attribute, JSONObject.NULL));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.CG.value(),
+                    new JSONObject().put(attribute, JSONObject.NULL));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -294,35 +304,36 @@ public class JSONSender implements Sink {
      */
     @Override
     public void nodeAttributeAdded(String sourceId, long timeId, String nodeId,
-	    String attribute, Object value) {
+            String attribute, Object value) {
 
-	// make an JSON object
-	JSONObject jsonObj = null;
-	try {
-	    if (attribute.equalsIgnoreCase("xyz")) {
-		jsonObj = new JSONObject().put(
-			Types.CN.value(),
-			new JSONObject().put(nodeId, new JSONObject()
-				// .put("x", ((Double)((Object[])value)[0])*200)
-				// .put("y", ((Double)((Object[])value)[1])*200)
-				// .put("z", ((Double)((Object[])value)[2])*200)
-				.put("x", ((Double) ((Object[]) value)[0]))
-				.put("y", ((Double) ((Object[]) value)[1]))
-				.put("z", ((Double) ((Object[]) value)[2]))));
-	    } else {
-		jsonObj = new JSONObject().put(
-			Types.CN.value(),
-			new JSONObject().put(nodeId,
-				new JSONObject().put(attribute, value)));
-	    }
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        // make an JSON object
+        JSONObject jsonObj = null;
+        try {
+            if (attribute.equalsIgnoreCase("xyz")) {
+                jsonObj = new JSONObject().put(
+                        Types.CN.value(),
+                        new JSONObject().put(nodeId, new JSONObject()
+                                // .put("x", ((Double)((Object[])value)[0])*200)
+                                // .put("y", ((Double)((Object[])value)[1])*200)
+                                // .put("z", ((Double)((Object[])value)[2])*200)
+                                .put("x", ((Double) ((Object[]) value)[0]))
+                                .put("y", ((Double) ((Object[]) value)[1]))
+                                .put("z", ((Double) ((Object[]) value)[2]))));
+            } else {
+                jsonObj = new JSONObject().put(
+                        Types.CN.value(),
+                        new JSONObject().put(nodeId,
+                                new JSONObject().put(attribute, value)));
+            }
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -336,40 +347,40 @@ public class JSONSender implements Sink {
      */
     @Override
     public void nodeAttributeChanged(String sourceId, long timeId,
-	    String nodeId, String attribute, Object oldValue, Object newValue) {
+            String nodeId, String attribute, Object oldValue, Object newValue) {
 
-	// make an JSON object
-	JSONObject jsonObj = null;
-	try {
-	    if (attribute.equalsIgnoreCase("xyz")) {
-		jsonObj = new JSONObject().put(
-			Types.CN.value(),
-			new JSONObject().put(nodeId, new JSONObject()
-				// .put("x",
-				// ((Double)((Object[])newValue)[0])*200)
-				// .put("y",
-				// ((Double)((Object[])newValue)[1])*200)
-				// .put("z",
-				// ((Double)((Object[])newValue)[2])*200)
-				.put("x", ((Double) ((Object[]) newValue)[0]))
-				.put("y", ((Double) ((Object[]) newValue)[1]))
-				.put("z", ((Double) ((Object[]) newValue)[2]))
+        // make an JSON object
+        JSONObject jsonObj = null;
+        try {
+            if (attribute.equalsIgnoreCase("xyz")) {
+                jsonObj = new JSONObject().put(
+                        Types.CN.value(),
+                        new JSONObject().put(nodeId, new JSONObject()
+                                // .put("x",
+                                // ((Double)((Object[])newValue)[0])*200)
+                                // .put("y",
+                                // ((Double)((Object[])newValue)[1])*200)
+                                // .put("z",
+                                // ((Double)((Object[])newValue)[2])*200)
+                                .put("x", ((Double) ((Object[]) newValue)[0]))
+                                .put("y", ((Double) ((Object[]) newValue)[1]))
+                                .put("z", ((Double) ((Object[]) newValue)[2]))
+                        ));
+            } else {
+                jsonObj = new JSONObject().put(
+                        Types.CN.value(),
+                        new JSONObject().put(nodeId,
+                                new JSONObject().put(attribute, newValue)));
+            }
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-			));
-	    } else {
-		jsonObj = new JSONObject().put(
-			Types.CN.value(),
-			new JSONObject().put(nodeId,
-				new JSONObject().put(attribute, newValue)));
-	    }
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
-
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -382,22 +393,23 @@ public class JSONSender implements Sink {
      */
     @Override
     public void nodeAttributeRemoved(String sourceId, long timeId,
-	    String nodeId, String attribute) {
+            String nodeId, String attribute) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(
-		    Types.CN.value(),
-		    new JSONObject().put(nodeId,
-			    new JSONObject().put(attribute, JSONObject.NULL)));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(
+                    Types.CN.value(),
+                    new JSONObject().put(nodeId,
+                            new JSONObject().put(attribute, JSONObject.NULL)));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -409,26 +421,27 @@ public class JSONSender implements Sink {
      */
     @Override
     public void edgeAdded(String sourceId, long timeId, String edgeId,
-	    String fromNodeId, String toNodeId, boolean directed) {
-	// make an JSON object
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(
-		    Types.AE.value(),
-		    new JSONObject().put(
-			    edgeId,
-			    new JSONObject()
-				    .put(Fields.SOURCE.value(), fromNodeId)
-				    .put(Fields.TARGET.value(), toNodeId)
-				    .put(Fields.DIRECTED.value(), directed)));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+            String fromNodeId, String toNodeId, boolean directed) {
+        // make an JSON object
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(
+                    Types.AE.value(),
+                    new JSONObject().put(
+                            edgeId,
+                            new JSONObject()
+                            .put(Fields.SOURCE.value(), fromNodeId)
+                            .put(Fields.TARGET.value(), toNodeId)
+                            .put(Fields.DIRECTED.value(), directed)));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -441,18 +454,19 @@ public class JSONSender implements Sink {
     @Override
     public void edgeRemoved(String sourceId, long timeId, String edgeId) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.DE.value(),
-		    new JSONObject().put(edgeId, new JSONObject()));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.DE.value(),
+                    new JSONObject().put(edgeId, new JSONObject()));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -465,18 +479,19 @@ public class JSONSender implements Sink {
     @Override
     public void graphCleared(String sourceId, long timeId) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.DN.value(),
-		    new JSONObject().put("filter", "ALL"));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.DN.value(),
+                    new JSONObject().put("filter", "ALL"));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
     }
 
     /*
@@ -488,19 +503,20 @@ public class JSONSender implements Sink {
     @Override
     public void nodeAdded(String sourceId, long timeId, String nodeId) {
 
-	// make an JSON object
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.AN.value(),
-		    new JSONObject().put(nodeId, new JSONObject()));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        // make an JSON object
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.AN.value(),
+                    new JSONObject().put(nodeId, new JSONObject()));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
 
     }
 
@@ -513,18 +529,19 @@ public class JSONSender implements Sink {
     @Override
     public void nodeRemoved(String sourceId, long timeId, String nodeId) {
 
-	JSONObject jsonObj = null;
-	try {
-	    jsonObj = new JSONObject().put(Types.DN.value(),
-		    new JSONObject().put(nodeId, new JSONObject()));
-	} catch (JSONException e) {
-	    e.printStackTrace();
-	}
-	if (debug)
-	    debug(jsonObj.toString());
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject().put(Types.DN.value(),
+                    new JSONObject().put(nodeId, new JSONObject()));
+        } catch (JSONException e) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+        }
+        if (debug && jsonObj != null) {
+            debug(jsonObj.toString());
+        }
 
-	// send jsonObj to Gephi
-	doSend(jsonObj, "updateGraph");
+        // send jsonObj to Gephi
+        doSend(jsonObj, "updateGraph");
     }
 
     /*
@@ -535,57 +552,50 @@ public class JSONSender implements Sink {
      */
     @Override
     public void stepBegins(String sourceId, long timeId, double step) {
-	// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
     /**
      * Send JSONObject message to Gephi server
-     * 
-     * @param obj
-     *            , the JSON message content
-     * @param operation
-     *            , the operation sending to the server, like "updateGraph",
-     *            "getGraph"
+     *
+     * @param obj , the JSON message content
+     * @param operation , the operation sending to the server, like
+     * "updateGraph", "getGraph"
      */
     private void doSend(JSONObject obj, String operation) {
 
-	try {
-	    URL url = new URL("http", host, port, "/" + workspace
-		    + "?operation=" + operation + "&format=JSON");
+        try {
+            URL url = new URL("http", host, port, "/" + workspace
+                    + "?operation=" + operation + "&format=JSON");
 
-	    URLConnection connection = url.openConnection();
+            URLConnection connection = url.openConnection();
 
-	    connection.setDoOutput(true);
-	    connection.connect();
+            connection.setDoOutput(true);
+            connection.connect();
 
-	    OutputStream outputStream = null;
-	    PrintStream out = null;
-	    try {
-		outputStream = connection.getOutputStream();
-		out = new PrintStream(outputStream, true);
+            try (OutputStream outputStream = connection.getOutputStream(); PrintStream out = new PrintStream(outputStream, true)) {
 
-		out.print(obj.toString() + EOL);
-		out.flush();
-		out.close();
+                out.println(obj.toString());
+                out.flush();
 
-		// send event message to the server and read the result from the
-		// server
-		InputStream inputStream = connection.getInputStream();
-		BufferedReader bf = new BufferedReader(new InputStreamReader(
-			inputStream));
-		String line;
-		while ((line = bf.readLine()) != null) {
-		    // if (debug) debug(line);
-		}
-		inputStream.close();
-	    } catch (UnknownServiceException e) {
-		// protocol doesn't support output
-		e.printStackTrace();
-		return;
-	    }
-	} catch (IOException ex) {
-	    ex.printStackTrace();
-	}
+                try ( // send event message to the server and read the result from the
+                        // server
+                        InputStream inputStream = connection.getInputStream()) {
+                    BufferedReader bf = new BufferedReader(new InputStreamReader(
+                            inputStream));
+                    String line;
+                    while ((line = bf.readLine()) != null) {
+                        // if (debug && jsonObj != null) debug(line);
+                    }
+                }
+            } catch (UnknownServiceException e) {
+                // protocol doesn't support output
+                Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, ex);
+            throw new UnsupportedOperationException(ex.getMessage());
+        }
     }
 }

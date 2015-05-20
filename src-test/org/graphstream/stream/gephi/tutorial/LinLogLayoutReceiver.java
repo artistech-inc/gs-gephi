@@ -22,7 +22,7 @@ import java.io.IOException;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.stream.GraphParseException;
-import org.graphstream.ui.swingViewer.Viewer;
+import org.graphstream.ui.view.Viewer;
 import org.graphstream.stream.ProxyPipe;
 import org.graphstream.stream.thread.ThreadProxyPipe;
 import org.graphstream.ui.layout.springbox.implementations.LinLog;

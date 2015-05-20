@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,17 +47,17 @@ public class JSONReceiver extends Thread {
     /**
      * the host of the Gephi server
      */
-    private String host;
+    private final String host;
 
     /**
      * the port of the Gephi server
      */
-    private int port;
+    private final int port;
 
     /**
      * the workspace name of the Gephi server
      */
-    private String workspace;
+    private final String workspace;
 
     /**
      * the gephi source ID
@@ -88,17 +90,7 @@ public class JSONReceiver extends Thread {
      *            , the workspace name of the Gephi server
      */
     public JSONReceiver(String host, int port, String workspace) {
-	this.host = host;
-	this.port = port;
-	this.workspace = workspace;
-	this.sourceId = String.format("<Gephi json stream %x>",
-		System.nanoTime());
-	this.debug = false;
-
-	this.sourceTime = new SourceTime(this.sourceId);
-	currentStream = new ThreadProxyPipe();
-	init();
-	start();
+        this(host, port, workspace, false);
     }
 
     /**
@@ -122,7 +114,7 @@ public class JSONReceiver extends Thread {
 
 	currentStream = new ThreadProxyPipe();
 	init();
-	start();
+	super.start();
     }
 
     /**
@@ -170,19 +162,18 @@ public class JSONReceiver extends Thread {
 	    urlConnection.connect();
 	} catch (IOException ex) {
 	    // can't connect to gephi
-	    ex.printStackTrace();
+	    Logger.getLogger(JSONReceiver.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
 
     /**
      * process the stream received from Gephi
      */
+    @Override
     public void run() {
 	// read the result from the servers
-	try {
-	    InputStream inputStream = urlConnection.getInputStream();
-	    BufferedReader bf = new BufferedReader(new InputStreamReader(
-		    inputStream));
+	try (InputStream inputStream = urlConnection.getInputStream(); ){
+	    BufferedReader bf = new BufferedReader(new InputStreamReader(inputStream));
 	    String line;
 	    while ((line = bf.readLine()) != null) {
 		if (debug)
@@ -190,11 +181,8 @@ public class JSONReceiver extends Thread {
 		// each line is a event in Gephi
 		parse(line);
 	    }
-	    inputStream.close();
-
 	} catch (IOException e) {
-	    e.printStackTrace();
-	    return;
+	    Logger.getLogger(JSONReceiver.class.getName()).log(Level.SEVERE, null, e);
 	}
     }
 
@@ -250,7 +238,7 @@ public class JSONReceiver extends Thread {
 		}
 	    }
 	} catch (JSONException e) {
-	    e.printStackTrace();
+	    Logger.getLogger(JSONReceiver.class.getName()).log(Level.SEVERE, null, e);
 	}
     }
 
