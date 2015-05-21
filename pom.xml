@@ -10,7 +10,27 @@
         An interconnection project between Gephi and GraphStream
     </description>
     <url>http://github.com/artistech-inc/gs-gephi</url>
-
+    <developers>
+        <developer>
+            <id>ZenHarbinger</id>
+            <name>Matthew Aguirre</name>
+            <email>matt.aguirre@gmail.com</email>
+            <url>https://github.com/ZenHarbinger/</url>
+            <organization>tros</organization>
+            <organizationUrl>http://artistech.com/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>America/New_York</timezone>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <build>
         <sourceDirectory>src</sourceDirectory>
         <outputDirectory>bin</outputDirectory>
