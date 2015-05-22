@@ -24,6 +24,15 @@
             <timezone>America/New_York</timezone>
         </developer>
     </developers>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/artistech-inc/gs-gephi/issues</url>
+    </issueManagement>
+        <scm>
+        <connection>scm:git:git://github.com/artistech-inc/gs-gephi.git</connection>
+        <developerConnection>scm:git:git@github.com/artistech-inc/gs-gephi.git</developerConnection>
+        <url>https://github.com/artistech-inc/gs-gephi</url>
+    </scm>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
