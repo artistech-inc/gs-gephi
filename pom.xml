@@ -14,9 +14,9 @@
         <developer>
             <id>ZenHarbinger</id>
             <name>Matthew Aguirre</name>
-            <email>matt.aguirre@gmail.com</email>
+            <email>matta.artistech@gmail.com</email>
             <url>https://github.com/ZenHarbinger/</url>
-            <organization>tros</organization>
+            <organization>artistech</organization>
             <organizationUrl>http://artistech.com/</organizationUrl>
             <roles>
                 <role>developer</role>
@@ -28,15 +28,15 @@
         <system>Github</system>
         <url>https://github.com/artistech-inc/gs-gephi/issues</url>
     </issueManagement>
-        <scm>
+    <scm>
         <connection>scm:git:git://github.com/artistech-inc/gs-gephi.git</connection>
         <developerConnection>scm:git:git@github.com/artistech-inc/gs-gephi.git</developerConnection>
         <url>https://github.com/artistech-inc/gs-gephi</url>
     </scm>
     <licenses>
         <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
