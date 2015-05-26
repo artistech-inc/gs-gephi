@@ -63,15 +63,14 @@ public class JSONSender implements Sink {
     private final String workspace;
 
     /**
-     * End of Line
+     * program debug mode
      */
-    // private static String EOL = "\r\n";
-    private static String EOL = "\n";
+    private boolean debug;
 
     /**
      * program debug mode
      */
-    private boolean debug;
+    private boolean errorDetected;
 
     /**
      * A sink which can send event to an Gephi server in JSON format
@@ -81,10 +80,7 @@ public class JSONSender implements Sink {
      * @param workspace , the workspace name of the Gephi server
      */
     public JSONSender(String host, int port, String workspace) {
-        this.host = host;
-        this.port = port;
-        this.workspace = workspace;
-        this.debug = false;
+        this(host, port, workspace, false);
     }
 
     /**
@@ -100,6 +96,7 @@ public class JSONSender implements Sink {
         this.port = port;
         this.workspace = workspace;
         this.debug = debug;
+        this.errorDetected = false;
     }
 
     /**
@@ -553,8 +550,6 @@ public class JSONSender implements Sink {
      */
     @Override
     public void stepBegins(String sourceId, long timeId, double step) {
-        // TODO Auto-generated method stub
-
     }
 
     /**
@@ -565,38 +560,39 @@ public class JSONSender implements Sink {
      * "updateGraph", "getGraph"
      */
     private void doSend(JSONObject obj, String operation) {
+        if (!this.errorDetected) {
+            try {
+                URL url = new URL("http", host, port, "/" + workspace
+                        + "?operation=" + operation + "&format=JSON");
 
-        try {
-            URL url = new URL("http", host, port, "/" + workspace
-                    + "?operation=" + operation + "&format=JSON");
+                URLConnection connection = url.openConnection();
 
-            URLConnection connection = url.openConnection();
+                connection.setDoOutput(true);
+                connection.connect();
 
-            connection.setDoOutput(true);
-            connection.connect();
+                try (OutputStream outputStream = connection.getOutputStream(); PrintStream out = new PrintStream(outputStream, true)) {
 
-            try (OutputStream outputStream = connection.getOutputStream(); PrintStream out = new PrintStream(outputStream, true)) {
+                    out.println(obj.toString());
+                    out.flush();
 
-                out.println(obj.toString());
-                out.flush();
-
-                try ( // send event message to the server and read the result from the
-                        // server
-                        InputStream inputStream = connection.getInputStream()) {
-                    BufferedReader bf = new BufferedReader(new InputStreamReader(
-                            inputStream));
-                    String line;
-                    while ((line = bf.readLine()) != null) {
-                        // if (debug && jsonObj != null) debug(line);
+                    try ( // send event message to the server and read the result from the
+                            // server
+                            InputStream inputStream = connection.getInputStream()) {
+                        BufferedReader bf = new BufferedReader(new InputStreamReader(
+                                inputStream));
+                        String line;
+                        while ((line = bf.readLine()) != null) {
+                            // if (debug && jsonObj != null) debug(line);
+                        }
                     }
+                } catch (UnknownServiceException e) {
+                    // protocol doesn't support output
+                    Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
                 }
-            } catch (UnknownServiceException e) {
-                // protocol doesn't support output
-                Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, e);
+            } catch (IOException ex) {
+                this.errorDetected = true;
+                Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(JSONSender.class.getName()).log(Level.SEVERE, null, ex);
-            throw new UnsupportedOperationException(ex.getMessage());
         }
     }
 }
